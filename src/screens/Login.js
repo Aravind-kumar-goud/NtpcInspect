@@ -11,8 +11,13 @@ import {
   Platform,
   ScrollView
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Picker } from '@react-native-picker/picker';
+import { navigate as rootNavigate } from './navigation/navigation';
 
-const LoginScreen = () => {
+
+
+const LoginScreen = ({ navigation }) => {
   const [step, setStep] = useState(1);
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
@@ -20,6 +25,8 @@ const LoginScreen = () => {
   const [challengeCode, setChallengeCode] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailList, setEmailList] = useState([]);
+
 
   const API_BASE_URL = 'https://webapp.ntpc.co.in/inspectionapi/api/';
   const API_HEADERS = {
@@ -51,8 +58,12 @@ const LoginScreen = () => {
       if (data.statusCode === 200 && data.statusDescShort === 'success') {
         setChallengeCode(data.challengeCode);
 
-        setStep(2);
-        Alert.alert('Success', 'Step 1 completed. Please enter your email.');
+      if (Array.isArray(data.data)) {
+        setEmailList(data.data);
+      }
+
+      setStep(2);
+      Alert.alert('Success', 'Step 1 completed. Please select your email.');
       } else {
         Alert.alert('Login Failed', data.error || 'Invalid credentials');
       }
@@ -133,15 +144,17 @@ const LoginScreen = () => {
       console.log('OTP Validation response:', data);
 
       if (data.statusCode === 200) {
+        const token = data.data?.[0]?.token;
+        await AsyncStorage.setItem("authToken", token);
+
         Alert.alert('Success', 'Login completed successfully!');
         setTimeout(() => {
-          setStep(1);
-          setUserId('');
-          setPassword('');
-          setEmail('');
-          setOtp('');
-          setChallengeCode('');
-        }, 2000);
+          if (navigation && typeof navigation.replace === 'function') {
+            navigation.replace('HomeDrawer');
+          } else {
+            rootNavigate('HomeDrawer');
+          }
+        }, 1000);
       } else {
         Alert.alert('OTP Verification Failed', data.statusDescript || data.error || 'Invalid OTP');
       }
@@ -219,20 +232,26 @@ const LoginScreen = () => {
               editable={false}
             />
 
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your registered email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              editable={!loading}
-            />
+            <Text style={styles.label}>Email</Text>
 
-            <Text style={styles.infoText}>
+            <View style={styles.dropdown}>
+              <Picker
+                selectedValue={email}
+                onValueChange={(value) => setEmail(value)}
+                enabled={!loading}
+              >
+                <Picker.Item label="Select Email" value="" />
+
+                {emailList.map((item, index) => (
+                  <Picker.Item key={index} label={item.trim()} value={item.trim()} />
+                ))}
+              </Picker>
+            </View>
+
+
+            {/* <Text style={styles.infoText}>
               An OTP will be sent to this email address for verification.
-            </Text>
+            </Text> */}
 
             <View style={styles.buttonRow}>
               <TouchableOpacity
@@ -311,14 +330,14 @@ const LoginScreen = () => {
                 )}
               </TouchableOpacity>
             </View>
-
+{/* 
             <TouchableOpacity
               style={styles.resendButton}
               onPress={handleStep2RequestOTP}
               disabled={loading}
             >
               <Text style={styles.resendText}>Resend OTP</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         );
 
@@ -444,6 +463,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  dropdown: {
+  borderWidth: 1,
+  borderColor: '#ddd',
+  borderRadius: 8,
+  backgroundColor: '#fff',
+  marginTop: 10,
+  // alignItems: 'center',
+  alignContent: 'center',
+}
+
 });
 
 export default LoginScreen;
