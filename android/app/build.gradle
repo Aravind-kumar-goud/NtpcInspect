@@ -59,6 +59,10 @@ react {
  */
 def enableProguardInReleaseBuilds = false
 
+//add for iocns
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+
+
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
  *

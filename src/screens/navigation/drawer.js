@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useState} from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,7 +11,14 @@ const WINDOW_WIDTH = Dimensions.get('window').width;
 
 function CustomDrawerContent(props) {
   const { navigation } = props;
-
+    const [userName, setUserName] = React.useState("Aravind");
+ React.useEffect(() => {
+    const loadUserData = async () => {
+      const name = await AsyncStorage.getItem("userName");  
+      if (name) setUserName(name);
+    };
+    loadUserData();
+  }, []);
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('authToken');
@@ -27,6 +34,17 @@ function CustomDrawerContent(props) {
 
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.container}>
+     <View style={styles.header}>
+        <View style={styles.profileCircle}>
+          <Text style={styles.profileInitial}>
+            {userName ? userName.charAt(0).toUpperCase() : "U"}
+          </Text>
+        </View>
+
+        <Text style={styles.usernameText}>
+          {userName || "User Name"}
+        </Text>
+      </View>
       <View style={styles.listContainer}>
         <DrawerItemList {...props} />
       </View>
@@ -81,4 +99,33 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
+  header: {
+  padding: 20,
+  alignItems: "center",
+  borderBottomWidth: 1,
+  borderColor: "#f1f1f1",
+  marginBottom: 10,
+},
+
+profileCircle: {
+  width: 70,
+  height: 70,
+  borderRadius: 35,
+  backgroundColor: "#3498db",
+  justifyContent: "center",
+  alignItems: "center",
+  marginBottom: 10,
+},
+
+profileInitial: {
+  fontSize: 32,
+  fontWeight: "bold",
+  color: "#fff",
+},
+
+usernameText: {
+  fontSize: 18,
+  fontWeight: "600",
+  color: "#2c3e50",
+},
 });

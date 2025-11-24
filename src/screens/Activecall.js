@@ -3,14 +3,18 @@ import { SafeAreaView, View, Text, StyleSheet, FlatList, TouchableOpacity, Dimen
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 
-const DATA = Array.from({ length: 6 }).map((_, i) => ({ id: `${i + 1}`, title: `Active Call #${i + 1}`, subtitle: 'CHP - Location XYZ' }));
+const DATA = Array.from({ length: 6 }).map((_, i) => ({ id: `${i + 1}`, title: `CHP Number `, subtitle: `110123${i + 1}`}));
 
-export default function Activecall() {
+export default function Activecall({navigation}) {
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.card} activeOpacity={0.8}>
-      <View>
+    <TouchableOpacity style={styles.card} activeOpacity={0.8}
+    onPress={() => navigation.navigate("CallDetails", {data: item.subtitle  })}>
+      <View style={{display:"flex",flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center"}}>
         <Text style={styles.cardTitle}>{item.title}</Text>
         <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
+        <Text style={styles.cardTitle}>{">"}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -71,7 +75,12 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   cardSubtitle: {
-    fontSize: 14,
-    color: '#7f8c8d',
+
+    fontSize: 18,
+     color: 'white',
+     backgroundColor:"darkblue",
+     padding:6,
+    //  marginLeft:40,
+     borderRadius:8
   },
 });

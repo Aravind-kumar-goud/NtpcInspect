@@ -145,7 +145,9 @@ const LoginScreen = ({ navigation }) => {
 
       if (data.statusCode === 200) {
         const token = data.data?.[0]?.token;
+        const userName=data.data?.[0]?.userLoginId
         await AsyncStorage.setItem("authToken", token);
+        await AsyncStorage.setItem("userName", userName);
 
         Alert.alert('Success', 'Login completed successfully!');
         setTimeout(() => {
