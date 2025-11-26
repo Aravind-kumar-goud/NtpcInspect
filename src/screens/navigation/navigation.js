@@ -61,14 +61,14 @@ export default function AppNavigation() {
     headerStyle: {
       backgroundColor: "#1E5AA7",
     },
-    headerTintColor: "#fff",        // makes back button + title white
+    headerTintColor: "#fff",        
     headerTitleStyle: {
       fontSize: 18,
       fontWeight: "600",
       color: "#fff",
     },
 
-    headerBackTitleVisible: false,  // hides "Back" text on iOS
+    headerBackTitleVisible: false,  
   })} />
         <Stack.Screen
           name="EquipmentScreen"
@@ -80,7 +80,7 @@ export default function AppNavigation() {
     headerStyle: {
       backgroundColor: "#1E5AA7",
     },
-    headerTintColor: "#fff",        // makes back button + title white
+    headerTintColor: "#fff",      
     headerTitleStyle: {
       fontSize: 18,
       fontWeight: "600",
@@ -101,7 +101,7 @@ export default function AppNavigation() {
       backgroundColor: "#1E5AA7",
     },
 
-    headerTintColor: "#fff",   // back button + title color
+    headerTintColor: "#fff",   
 
     headerTitleStyle: {
       fontSize: 18,
@@ -109,7 +109,7 @@ export default function AppNavigation() {
       color: "#fff",
     },
 
-    headerBackTitleVisible: false, // optional (hide "Back" on iOS)
+    headerBackTitleVisible: false, 
   })}
 />
       </Stack.Navigator>

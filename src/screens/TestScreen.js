@@ -4,10 +4,11 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  TextInput,
   ScrollView,
   Modal,
   StyleSheet,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Camera, useCameraDevice } from "react-native-vision-camera";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -17,7 +18,6 @@ export default function TestScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { data } = route.params || {};
-
   const [photo, setPhoto] = useState(null);
   const [openCam, setOpenCam] = useState(false);
   const cameraRef = useRef(null);
@@ -28,19 +28,24 @@ export default function TestScreen() {
   const [flash, setFlash] = useState("off");
   const [loading, setLoading] = useState(false);
 
-  const [u, setU] = useState("");
-  const [v, setV] = useState("");
-  const [w, setW] = useState("");
   const [tapPosition, setTapPosition] = useState("");
+  const [vectorGroup, setVectorGroup] = useState("");
+  const [phaseU, setPhaseU] = useState("");
+  const [phaseV, setPhaseV] = useState("");
+  const [phaseW, setPhaseW] = useState("");
 
-  // CAMERA PERMISSION
   const openCameraModal = async () => {
-    const permission = await Camera.requestCameraPermission();
-    if (permission !== "authorized" && permission !== "granted") {
-      alert("Camera permission denied. Enable it in settings.");
-      return;
+    try {
+      const permission = await Camera.requestCameraPermission();
+      if (permission !== "authorized" && permission !== "granted") {
+        Alert.alert("Camera permission denied", "Enable camera permission in settings.");
+        return;
+      }
+      setOpenCam(true);
+    } catch (err) {
+      console.log("Permission error:", err);
+      Alert.alert("Error", "Unable to request camera permission.");
     }
-    setOpenCam(true);
   };
 
   const capturePhoto = async () => {
@@ -55,73 +60,212 @@ export default function TestScreen() {
       const uri = "file://" + result.path;
       setPhoto(uri);
       setOpenCam(false);
+
+      // call API (dummy for now)
       uploadToApi(uri);
     } catch (err) {
       console.log("CAPTURE ERROR:", err);
+      Alert.alert("Error", "Failed to capture photo.");
     }
   };
 
-  // SIMULATED API
-  const uploadToApi = async () => {
+
+
+  // ---------- Simulated upload + response handling ----------
+  const uploadToApi = async (imageUri) => {
     setLoading(true);
-    const resp = {
-      tapPosition: "+1",
-      ratioU: 93.35,
-      ratioV: 93.325,
-      ratioW: 93.525,
-    };
+    try {
+      await new Promise((res) => setTimeout(res, 700));
 
-    setTapPosition(String(resp.tapPosition));
-    setU(String(resp.ratioU));
-    setV(String(resp.ratioV));
-    setW(String(resp.ratioW));
+      // Dummy response 
+      const resp = {
+        statusCode: 200,
+        statusDescShort: "Success",
+        statusDescLong: "success",
+        recsAffected: 1,
+        data: [
+          {
+            tapPosition: "+1",
+            vectorGroup: "Dy11",
+            PhaseU: 4.11,
+            PhaseV: 4.109,
+            PhaseW: 4.12,
+          },
+        ],
+      };
 
-    setLoading(false);
+      if (resp.statusCode === 200 && Array.isArray(resp.data) && resp.data.length > 0) {
+        const item = resp.data[0];
+        setTapPosition(item.tapPosition != null ? String(item.tapPosition) : "");
+        setVectorGroup(item.vectorGroup != null ? String(item.vectorGroup) : "");
+        setPhaseU(item.PhaseU != null ? String(item.PhaseU) : "");
+        setPhaseV(item.PhaseV != null ? String(item.PhaseV) : "");
+        setPhaseW(item.PhaseW != null ? String(item.PhaseW) : "");
+      } else {
+        Alert.alert("Error", resp.statusDescLong || "Data not available");
+      }
+    } catch (err) {
+      console.log("UPLOAD ERROR:", err);
+      Alert.alert("Error", "Network error while uploading image.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
+
+  const handleRecapture = () => {
+    setTapPosition("");
+    setVectorGroup("");
+    setPhaseU("");
+    setPhaseV("");
+    setPhaseW("");
+    openCameraModal();
+  };
+
+  const handleClear = () => {
+    setPhoto(null);
+    setTapPosition("");
+    setVectorGroup("");
+    setPhaseU("");
+    setPhaseV("");
+    setPhaseW("");
+  };
+
+  const timestamp = () => {
+    const d = new Date();
+    return d.toLocaleString();
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 36 }}>
       {/* CARD */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>{data}</Text>
-        <Text style={styles.cardSub}>{`Capture image of ${data} results`}</Text>
+        <View style={styles.cardHeader}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>{data || "Turns Ratio test"}</Text>
+            <Text style={styles.cardSub}>Capture image of TTR test results</Text>
+          </View>
 
-        {photo && <Image source={{ uri: photo }} style={styles.previewImage} />}
+          {/* Buttons aligned vertically center and to the right */}
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={[styles.actionBtn, styles.recapBtn]} onPress={handleRecapture}>
+              <Ionicons name="camera" size={14} color="#1E5AA7" />
+              <Text style={[styles.actionText, { color: "#1E5AA7" }]}>RE-CAPTURE</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity onPress={openCameraModal} style={styles.captureBtn}>
-          <Text style={styles.captureText}>📷 CAPTURE IMAGE</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionBtn, styles.clearBtn]} onPress={handleClear}>
+              <Ionicons name="trash" size={14} color="#c62828" />
+              <Text style={[styles.actionText, { color: "#c62828" }]}>CLEAR</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-        {loading && <Text style={styles.loadingText}>Processing image...</Text>}
+        <View style={styles.imageContainer}>
+          {photo ? (
+            <Image source={{ uri: photo }} style={styles.previewImage} />
+          ) : (
+            <View style={[styles.previewImage, styles.previewPlaceholder]}>
+              <Text style={{ color: "#888" }}>No image captured</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.timestampRow}>
+          <Text style={styles.timestampText}>{photo ? timestamp() : ""}</Text>
+        </View>
+
+        <View style={styles.cardFooter}>
+          <TouchableOpacity onPress={openCameraModal} style={styles.centeredCaptureBtn}>
+            <Text style={styles.centeredCaptureText}>📷 CAPTURE IMAGE</Text>
+          </TouchableOpacity>
+          {loading && (
+            <View style={{ marginTop: 10 }}>
+              <ActivityIndicator size="small" />
+            </View>
+          )}
+        </View>
       </View>
 
-      {/* EXTRACTED DATA */}
-      {photo && (
+      {/* VERIFY SECTION */}
+      {(tapPosition || vectorGroup || phaseU || phaseV || phaseW) && (
         <>
-          <Text style={styles.sectionTitle}>Verify Extracted Data</Text>
-          <Text style={styles.sectionSub}>AI extracted values. Edit if needed.</Text>
-
-          <View style={[styles.inputBox, { borderColor: "purple" }]}>
-            <Text style={[styles.inputLabel, { color: "purple" }]}>● Tap Position</Text>
-            <TextInput value={tapPosition} onChangeText={setTapPosition} style={styles.textInput} />
+          <View style={styles.verifyHeader}>
+            <View style={styles.verifyIcon}>
+              <Ionicons name="checkmark-done" size={18} color="#27ae60" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.verifyTitle}>Verify Extracted Data</Text>
+              <Text style={styles.verifySub}>AI has extracted the following values. Please verify and correct if needed.</Text>
+            </View>
           </View>
 
-          <View style={[styles.inputBox, { borderColor: "red" }]}>
-            <Text style={[styles.inputLabel, { color: "red" }]}>● Phase U</Text>
-            <TextInput value={u} onChangeText={setU} keyboardType="numeric" style={styles.textInput} />
-          </View>
+          {/* Phase Cards */}
+          
+        
+            <View style={styles.phaseCard}>
+              <View style={[styles.phaseAccent, { backgroundColor: "#e74c3c" }]} />
+              <View style={styles.phaseContent}>
+                <Text style={styles.phaseLabel}>Tap Pos</Text>
+                <Text style={styles.phaseSmall}>Measured</Text>
+                <View style={styles.phaseValueBox}>
+                  <Text style={styles.phaseValue}>{tapPosition}</Text>
+                </View>
+              </View>
+            </View>
+      
+            <View style={styles.phaseCard}>
+              <View style={[styles.phaseAccent, { backgroundColor: "#f1c40f" }]} />
+              <View style={styles.phaseContent}>
+                <Text style={styles.phaseLabel}>Vector Group</Text>
+                <Text style={styles.phaseSmall}>Measured</Text>
+                <View style={styles.phaseValueBox}>
+                  <Text style={styles.phaseValue}>{vectorGroup}</Text>
+                </View>
+              </View>
+            </View>
 
-          <View style={[styles.inputBox, { borderColor: "gold" }]}>
-            <Text style={[styles.inputLabel, { color: "gold" }]}>● Phase V</Text>
-            <TextInput value={v} onChangeText={setV} keyboardType="numeric" style={styles.textInput} />
-          </View>
+            <View style={styles.phaseCard}>
+              <View style={[styles.phaseAccent, { backgroundColor: "#e74c3c" }]} />
+              <View style={styles.phaseContent}>
+                <Text style={styles.phaseLabel}>Phase U</Text>
+                <Text style={styles.phaseSmall}>Measured</Text>
+                <View style={styles.phaseValueBox}>
+                  <Text style={styles.phaseValue}>{phaseU}</Text>
+                </View>
+              </View>
+            </View>
 
-          <View style={[styles.inputBox, { borderColor: "blue" }]}>
-            <Text style={[styles.inputLabel, { color: "blue" }]}>● Phase W</Text>
-            <TextInput value={w} onChangeText={setW} keyboardType="numeric" style={styles.textInput} />
-          </View>
+         
+            <View style={styles.phaseCard}>
+              <View style={[styles.phaseAccent, { backgroundColor: "#f1c40f" }]} />
+              <View style={styles.phaseContent}>
+                <Text style={styles.phaseLabel}>Phase V</Text>
+                <Text style={styles.phaseSmall}>Measured</Text>
+                <View style={styles.phaseValueBox}>
+                  <Text style={styles.phaseValue}>{phaseV}</Text>
+                </View>
+              </View>
+            </View>
+         
 
-          <TouchableOpacity style={styles.saveBtn}>
+          
+            <View style={styles.phaseCard}>
+              <View style={[styles.phaseAccent, { backgroundColor: "#2980b9" }]} />
+              <View style={styles.phaseContent}>
+                <Text style={styles.phaseLabel}>Phase W</Text>
+                <Text style={styles.phaseSmall}>Measured</Text>
+                <View style={styles.phaseValueBox}>
+                  <Text style={styles.phaseValue}>{phaseW}</Text>
+                </View>
+              </View>
+            </View>
+
+          <TouchableOpacity
+            style={styles.saveBtn}
+            onPress={() => Alert.alert("Confirmed", "Values confirmed. Proceeding...")}
+          >
             <Text style={styles.saveText}>SAVE & PROCEED</Text>
           </TouchableOpacity>
         </>
@@ -130,7 +274,7 @@ export default function TestScreen() {
       {/* CAMERA MODAL */}
       <Modal visible={openCam} animationType="fade">
         <View style={styles.modalContainer}>
-          {device && (
+          {device ? (
             <Camera
               ref={cameraRef}
               device={device}
@@ -139,34 +283,31 @@ export default function TestScreen() {
               flash={flash}
               style={{ flex: 1 }}
             />
+          ) : (
+            <View style={styles.noDevice}>
+              <Text style={{ color: "#fff" }}>No camera device found</Text>
+            </View>
           )}
 
           {/* FLASH TOP-LEFT */}
           <TouchableOpacity
             style={styles.flashBtn}
-            onPress={() => setFlash(flash === "off" ? "on" : "off")}
+            onPress={() => setFlash((p) => (p === "off" ? "on" : "off"))}
           >
-            <Ionicons
-              name={flash === "on" ? "flash" : "flash-off"}
-              size={32}
-              color="white"
-            />
+            <Ionicons name={flash === "on" ? "flash" : "flash-off"} size={28} color="white" />
           </TouchableOpacity>
 
           {/* CLOSE BUTTON TOP-RIGHT */}
-          <TouchableOpacity
-            style={styles.closeBtn}
-            onPress={() => setOpenCam(false)}
-          >
+          <TouchableOpacity style={styles.closeBtn} onPress={() => setOpenCam(false)}>
             <Ionicons name="close" size={34} color="white" />
           </TouchableOpacity>
 
           {/* SWITCH CAMERA BOTTOM-RIGHT */}
           <TouchableOpacity
             style={styles.switchBtn}
-            onPress={() => setCameraType(cameraType === "back" ? "front" : "back")}
+            onPress={() => setCameraType((p) => (p === "back" ? "front" : "back"))}
           >
-            <Ionicons name="camera-reverse" size={36} color="white" />
+            <Ionicons name="camera-reverse" size={34} color="white" />
           </TouchableOpacity>
 
           {/* SHUTTER BUTTON */}
@@ -180,66 +321,180 @@ export default function TestScreen() {
 /* ---------------------- STYLES ---------------------- */
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#f6f7fb" },
 
   card: {
-    margin: 20,
-    padding: 20,
+    margin: 16,
     backgroundColor: "#fff",
     borderRadius: 12,
+    padding: 14,
     elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
   },
-  cardTitle: { fontSize: 18, fontWeight: "600" },
-  cardSub: { color: "#777", marginTop: 5 },
-
-  previewImage: {
-    width: "100%",
-    height: 220,
-    borderRadius: 12,
-    marginTop: 15,
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 6,
   },
+  cardTitle: { fontSize: 16, fontWeight: "700", color: "#222" },
+  cardSub: { color: "#777", marginTop: 4, fontSize: 12 },
 
-  captureBtn: {
-    marginTop: 20,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: "#1E5AA7",
+  actionRow: { flexDirection: "row", alignItems: "center" },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginLeft: 0,
+    borderWidth: 1,
+    backgroundColor: "#fff",
+  },
+  recapBtn: {
+    borderColor: "#1E5AA7",
+  },
+  clearBtn: {
+    borderColor: "#f6deda",
+    marginLeft: 8,
+  },
+  actionText: {
+    marginLeft: 6,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+
+  imageContainer: {
+    marginTop: 12,
     alignItems: "center",
   },
-  captureText: { fontWeight: "700" },
-
-  loadingText: { marginTop: 10, color: "blue" },
-
-  sectionTitle: { fontSize: 20, fontWeight: "700", marginLeft: 20, marginTop: 10 },
-  sectionSub: { marginLeft: 20, color: "#777" },
-
-  inputBox: {
-    marginHorizontal: 20,
-    marginBottom: 15,
-    padding: 15,
-    borderWidth: 1,
-    borderRadius: 12,
-  },
-  inputLabel: { fontWeight: "700" },
-  textInput: {
-    borderWidth: 1,
+  previewImage: {
+    width: "100%",
+    height: 200,
     borderRadius: 8,
-    padding: 10,
-    marginTop: 10,
-    fontSize: 16,
   },
+  previewPlaceholder: {
+    borderWidth: 1,
+    borderColor: "#eee",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fafafa",
+  },
+
+  timestampRow: {
+    marginTop: 10,
+    alignItems: "center",
+  },
+  timestampText: {
+    fontSize: 12,
+    color: "#9aa0a6",
+  },
+
+  chipsRow: {
+    flexDirection: "row",
+    marginTop: 10,
+    marginHorizontal: 6,
+  },
+  chip: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: "#eee",
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+  chipLabel: {
+    fontSize: 10,
+    color: "#777",
+  },
+  chipValue: {
+    fontSize: 14,
+    fontWeight: "700",
+    marginTop: 4,
+    color: "#222",
+  },
+
+  cardFooter: {
+    marginTop: 12,
+    alignItems: "center",
+  },
+  centeredCaptureBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#1E5AA7",
+    backgroundColor: "#fff",
+  },
+  centeredCaptureText: { color: "#1E5AA7", fontWeight: "700" },
+
+  /* VERIFY header */
+  verifyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+    marginHorizontal: 16,
+    paddingVertical: 10,
+  },
+  verifyIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#e9f7ee",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  verifyTitle: { fontSize: 16, fontWeight: "700", color: "#222" },
+  verifySub: { fontSize: 12, color: "#777", marginTop: 2 },
+
+  /* Phase card */
+  phaseCard: {
+    flexDirection: "row",
+    marginHorizontal: 16,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    marginBottom: 12,
+    overflow: "hidden",
+  },
+  phaseAccent: {
+    width: 8,
+  },
+  phaseContent: {
+    flex: 1,
+    padding: 12,
+    justifyContent: "center",
+  },
+  phaseLabel: { fontSize: 14, fontWeight: "700", color: "#222" },
+  phaseSmall: { fontSize: 12, color: "#777", marginTop: 6 },
+  phaseValueBox: {
+    marginTop: 10,
+    backgroundColor: "#f3f4f6",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  phaseValue: { fontSize: 16, fontWeight: "700", color: "#333" },
 
   saveBtn: {
-    margin: 20,
-    padding: 15,
+    marginHorizontal: 16,
+    marginTop: 8,
+    padding: 14,
     borderRadius: 10,
     backgroundColor: "#1E5AA7",
     alignItems: "center",
   },
-  saveText: { color: "#fff", fontSize: 18, fontWeight: "700" },
+  saveText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 
-  /* CAMERA */
+  /* CAMERA MODAL */
   modalContainer: { flex: 1, backgroundColor: "black" },
 
   flashBtn: {
@@ -269,5 +524,11 @@ const styles = StyleSheet.create({
     height: 75,
     borderRadius: 40,
     backgroundColor: "#fff",
+  },
+
+  noDevice: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
