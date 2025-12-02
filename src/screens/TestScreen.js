@@ -33,6 +33,7 @@ export default function TestScreen() {
   const [phaseU, setPhaseU] = useState("");
   const [phaseV, setPhaseV] = useState("");
   const [phaseW, setPhaseW] = useState("");
+  const [dynamicData, setDynamicData] = useState([]);
 
   const openCameraModal = async () => {
     try {
@@ -83,24 +84,23 @@ export default function TestScreen() {
         statusDescShort: "Success",
         statusDescLong: "success",
         recsAffected: 1,
-        data: [
-          {
-            tapPosition: "+1",
-            vectorGroup: "Dy11",
-            PhaseU: 4.11,
-            PhaseV: 4.109,
-            PhaseW: 4.12,
-          },
-        ],
+        data:[
+  { title: "Tap Position", description: "Measured", value: "+1", color: "red", type: "text" },
+  { title: "Vector Group", description: "Measured", value: "Dy11", color: "green", type: "text" },
+  { title: "Phase U", description: "Measured", value: 4.11, color: "yellow", type: "text" },
+  { title: "Phase V", description: "Measured", value: 4.109, color: "black", type: "text" },
+  { title: "Phase W", description: "Measured", value: 4.12, color: "red", type: "text" }
+],
       };
 
       if (resp.statusCode === 200 && Array.isArray(resp.data) && resp.data.length > 0) {
-        const item = resp.data[0];
-        setTapPosition(item.tapPosition != null ? String(item.tapPosition) : "");
-        setVectorGroup(item.vectorGroup != null ? String(item.vectorGroup) : "");
-        setPhaseU(item.PhaseU != null ? String(item.PhaseU) : "");
-        setPhaseV(item.PhaseV != null ? String(item.PhaseV) : "");
-        setPhaseW(item.PhaseW != null ? String(item.PhaseW) : "");
+        // const item = resp.data[0];
+        // setTapPosition(item.tapPosition != null ? String(item.tapPosition) : "");
+        // setVectorGroup(item.vectorGroup != null ? String(item.vectorGroup) : "");
+        // setPhaseU(item.PhaseU != null ? String(item.PhaseU) : "");
+        // setPhaseV(item.PhaseV != null ? String(item.PhaseV) : "");
+        // setPhaseW(item.PhaseW != null ? String(item.PhaseW) : "");
+        setDynamicData(resp.data)
       } else {
         Alert.alert("Error", resp.statusDescLong || "Data not available");
       }
@@ -116,27 +116,37 @@ export default function TestScreen() {
 
 
   const handleRecapture = () => {
-    setTapPosition("");
-    setVectorGroup("");
-    setPhaseU("");
-    setPhaseV("");
-    setPhaseW("");
+    // setTapPosition("");
+    // setVectorGroup("");
+    // setPhaseU("");
+    // setPhaseV("");
+    // setPhaseW("");
+    setDynamicData([])
     openCameraModal();
   };
 
   const handleClear = () => {
     setPhoto(null);
-    setTapPosition("");
-    setVectorGroup("");
-    setPhaseU("");
-    setPhaseV("");
-    setPhaseW("");
+    // setTapPosition("");
+    // setVectorGroup("");
+    // setPhaseU("");
+    // setPhaseV("");
+    // setPhaseW("");
+     setDynamicData([])
   };
 
   const timestamp = () => {
-    const d = new Date();
-    return d.toLocaleString();
-  };
+  const now = new Date();
+  return now.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+};
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 36 }}>
@@ -145,7 +155,7 @@ export default function TestScreen() {
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>{data || "Turns Ratio test"}</Text>
-            <Text style={styles.cardSub}>Capture image of TTR test results</Text>
+            <Text style={styles.cardSub}>{`Capture image of ${data} results`}</Text>
           </View>
 
           {/* Buttons aligned vertically center and to the right */}
@@ -189,7 +199,7 @@ export default function TestScreen() {
       </View>
 
       {/* VERIFY SECTION */}
-      {(tapPosition || vectorGroup || phaseU || phaseV || phaseW) && (
+      {/* {(tapPosition || vectorGroup || phaseU || phaseV || phaseW) && (
         <>
           <View style={styles.verifyHeader}>
             <View style={styles.verifyIcon}>
@@ -204,7 +214,7 @@ export default function TestScreen() {
           {/* Phase Cards */}
           
         
-            <View style={styles.phaseCard}>
+            {/* <View style={styles.phaseCard}>
               <View style={[styles.phaseAccent, { backgroundColor: "#e74c3c" }]} />
               <View style={styles.phaseContent}>
                 <Text style={styles.phaseLabel}>Tap Pos</Text>
@@ -269,7 +279,51 @@ export default function TestScreen() {
             <Text style={styles.saveText}>SAVE & PROCEED</Text>
           </TouchableOpacity>
         </>
-      )}
+      )} */} 
+
+      {/* ✅ DYNAMIC VERIFY SECTION */}
+{dynamicData.length > 0 && (
+  <>
+    {/* Header */}
+    <View style={styles.verifyHeader}>
+      <View style={styles.verifyIcon}>
+        <Ionicons name="checkmark-done" size={18} color="#27ae60" />
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <Text style={styles.verifyTitle}>Verify Extracted Data</Text>
+        <Text style={styles.verifySub}>
+          AI has extracted the following values. Please verify and correct if needed.
+        </Text>
+      </View>
+    </View>
+
+    {/* Loop Data */}
+    {dynamicData.map((item, index) => (
+      <View key={index} style={styles.phaseCard}>
+        {/* Left Color Strip */}
+        <View style={[styles.phaseAccent, { backgroundColor: item.color }]} />
+
+        <View style={styles.phaseContent}>
+          <Text style={styles.phaseLabel}>{item.title}</Text>
+          <Text style={styles.phaseSmall}>{item.description}</Text>
+
+          <View style={styles.phaseValueBox}>
+            <Text style={styles.phaseValue}>{String(item.value)}</Text>
+          </View>
+        </View>
+      </View>
+    ))}
+
+    <TouchableOpacity
+      style={styles.saveBtn}
+      onPress={() => Alert.alert("Confirmed", "Values confirmed. Proceeding...")}
+    >
+      <Text style={styles.saveText}>SAVE & PROCEED</Text>
+    </TouchableOpacity>
+  </>
+)}
+
 
       {/* CAMERA MODAL */}
       <Modal visible={openCam} animationType="fade">
