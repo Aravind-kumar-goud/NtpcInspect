@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
-import { navigate as rootNavigate } from './navigation/navigation';
+import { navigate as rootNavigate } from '../navigation/AppNavigator';
 
 
 
@@ -148,6 +148,7 @@ const LoginScreen = ({ navigation }) => {
         const userName=data.data?.[0]?.userLoginId
         await AsyncStorage.setItem("authToken", token);
         await AsyncStorage.setItem("userName", userName);
+        await AsyncStorage.setItem("user", userId);
 
         Alert.alert('Success', 'Login completed successfully!');
         setTimeout(() => {

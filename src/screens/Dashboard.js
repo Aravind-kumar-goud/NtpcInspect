@@ -7,11 +7,19 @@ const Dashboard = ({ navigation }) => {
       navigation.navigate('Active Calls');
     }
   };
+  const goToSavedData = () => {
+    if (navigation && typeof navigation.navigate === 'function') {
+      navigation.navigate('ChpSavedData');
+    }
+  };
 
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.tile} onPress={goToActiveCalls}>
-        <Text style={styles.tileText}>Active Calls CHPs</Text>
+        <Text style={styles.tileText}>Pending Calls CHPs</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.tile} onPress={goToSavedData}>
+        <Text style={styles.tileText}>View Saved Data</Text>
       </TouchableOpacity>
     </View>
   );
@@ -30,6 +38,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
+    marginTop:20
   },
   tileText: {
     color: '#fff',

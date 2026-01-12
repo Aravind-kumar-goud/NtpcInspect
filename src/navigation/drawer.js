@@ -3,8 +3,8 @@ import { View, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-nati
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import Dashboard from '../Dashboard';
-import Activecall from '../Activecall';
+import Dashboard from '../screens/Dashboard';
+import Activecall from '../screens/Activecall';
 
 const Drawer = createDrawerNavigator();
 const WINDOW_WIDTH = Dimensions.get('window').width;
@@ -69,7 +69,9 @@ export default function DrawerNavigation() {
       }}
     >
       <Drawer.Screen name="Dashboard" component={Dashboard} />
-      <Drawer.Screen name="Active Calls" component={Activecall} />
+      <Drawer.Screen name="Active Calls" component={Activecall} options={{
+    headerShown: false,
+  }}/>
     </Drawer.Navigator>
   );
 }

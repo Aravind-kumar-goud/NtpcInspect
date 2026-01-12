@@ -2,12 +2,32 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>This app needs access to your photo library</string>
+
 <key>NSCameraUsageDescription</key>
-<string>$(PRODUCT_NAME) needs access to your Camera.</string>
+<string>This app needs access to camera</string>
+
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>This app needs access to save photos</string>
+<!-- Location permission when app is in use -->
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>This app needs access to your location to capture inspection location.</string>
+
+<!-- Location permission always (optional but recommended) -->
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>This app needs access to your location even when running in background.</string>
+
+<!-- Older iOS support -->
+<key>NSLocationAlwaysUsageDescription</key>
+<string>This app requires location access for inspection tracking.</string>
+
+<key>NSCameraUsageDescription</key>
+<string> needs access to your Camera.</string>
 
 <!-- optionally, if you want to record audio: -->
 <key>NSMicrophoneUsageDescription</key>
-<string>$(PRODUCT_NAME) needs access to your Microphone.</string>
+<string> needs access to your Microphone.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

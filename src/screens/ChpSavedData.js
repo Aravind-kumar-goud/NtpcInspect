@@ -26,7 +26,7 @@ const API_HEADERS = {
     'pgH7QzFHJx4w46fI~$@#!$@#$dfasfd5Uzi4RvtTwlAzGyageSNz3oDeepa=xcode',
 };
 
-export default function Activecall({ navigation }) {
+export default function ChpSavedData({ navigation }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -136,9 +136,9 @@ export default function Activecall({ navigation }) {
 };
 
 const handleNavigate = async (item) => {
-  await AsyncStorage.setItem("ACTIVE_ITEM", JSON.stringify(item));
+  // await AsyncStorage.setItem("ACTIVE_ITEM", JSON.stringify(item));
 
-  navigation.navigate("EquipmentDetailScreen", {
+  navigation.navigate("SavedChpsScreen", {
     item, // optional (for first load only)
   });
 };
@@ -196,7 +196,7 @@ const handleNavigate = async (item) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Icon name="clipboard-text" size={26} color="#0d6efd" />
-        <Text style={styles.headerText}>Active Calls</Text>
+        <Text style={styles.headerText}>Saved Data </Text>
       </View>
 
       {loading ? (
