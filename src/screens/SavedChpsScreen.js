@@ -5,46 +5,28 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-/* ================= MOCK API FUNCTIONS ================= */
+/* ================= API CONFIG ================= */
 
-// 🔹 Mock API 1: Get Test List
-const fetchTestList = async (payload) => {
-  console.log("TEST LIST PAYLOAD 👉", payload);
+const API_BASE_URL = "https://webapp.ntpc.co.in/inspectionapi/api/";
 
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { testId: 1, testName: "IR TEST" },
-        { testId: 2, testName: "BDV TEST" },
-        { testId: 3, testName: "TAN DELTA TEST" },
-      ]);
-    }, 800);
-  });
-};
-
-// 🔹 Mock API 2: Get Test Dates
-const fetchTestDates = async (payload) => {
-  console.log("DATE LIST PAYLOAD 👉", payload);
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { dateId: 1, testDate: "2024-12-10" },
-        { dateId: 2, testDate: "2024-12-18" },
-        { dateId: 3, testDate: "2025-01-02" },
-      ]);
-    }, 800);
-  });
+const API_HEADERS = {
+  "Content-Type": "application/json",
+  XApiKey:
+    "pgH7QzFHJx4w46fI~$@#!$@#$dfasfd5Uzi4RvtTwlAzGyageSNz3oDeepa=xcode",
 };
 
 /* ================= SCREEN ================= */
 
 export default function SavedChpsScreen({ route }) {
-  const { chpNo, inspRowId, materialType } = route.params.item || {};
+  const { chpNo, inspRowId, materialType } =
+    route.params?.item || {};
+    console.log(chpNo,  inspRowId, materialType,"AAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
   const [testList, setTestList] = useState([]);
   const [dateList, setDateList] = useState([]);
@@ -54,61 +36,123 @@ export default function SavedChpsScreen({ route }) {
 
   const [loadingTests, setLoadingTests] = useState(false);
   const [loadingDates, setLoadingDates] = useState(false);
+  
+  const mapDatesForDropdown = (datesArray) => {
+  return datesArray.map((date, index) => ({
+    id: index + 1,     // unique id
+    testDate: date,   // label
+  }));
+}
+  /* ================= API 1: GET TEST LIST ================= */
+  const fetchCompletedTests = async () => {
+    try {
+      setLoadingTests(true);
 
-  /* ================= LOAD TEST LIST ================= */
-  useEffect(() => {
-    loadTests();
-  }, []);
+      const token = await AsyncStorage.getItem("authToken");
 
-  const loadTests = async () => {
-    setLoadingTests(true);
+      const payload = {
+        chpNo,
+        equipName:materialType,
+        inspRowId,
+      };
 
-    const payload = {
-      chpNo,
-      inspRowId,
-      materialType,
-    };
+      const response = await fetch(
+        `${API_BASE_URL}Inspection/GetCompletedTestsListForEqp`,
+        {
+          method: "POST",
+          headers: {
+            ...API_HEADERS,
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
-    const data = await fetchTestList(payload);
-    setTestList(data);
-    setLoadingTests(false);
+      const result = await response.json();
+      console.log(result)
+
+      if (response.ok && result?.data) {
+        setTestList(result.data);
+      } else {
+        Alert.alert("Error", "Failed to fetch test list");
+      }
+    } catch (error) {
+      console.log("TEST LIST API ERROR 👉", error);
+      Alert.alert("Error", "Something went wrong");
+    } finally {
+      setLoadingTests(false);
+    }
   };
 
-  /* ================= LOAD DATE LIST ================= */
+  /* ================= API 2: GET TEST DATES ================= */
+  const fetchCompletedTestDates = async (testId) => {
+    try {
+      setLoadingDates(true);
+
+      const token = await AsyncStorage.getItem("authToken");
+
+      const response = await fetch(
+        `${API_BASE_URL}Inspection/GetCompletedTestsDates/${testId}`,
+        {
+          method: "POST",
+          headers: {
+            ...API_HEADERS,
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+      console.log(result)
+
+      if (response.ok && result?.data) {
+        // setDateList(result.data);
+        const mappedDates = mapDatesForDropdown(result.data);
+
+  setDateList(mappedDates);
+      } else {
+        Alert.alert("Error", "Failed to fetch test dates");
+      }
+    } catch (error) {
+      console.log("TEST DATE API ERROR 👉", error);
+      Alert.alert("Error", "Something went wrong");
+    } finally {
+      setLoadingDates(false);
+    }
+  };
+
+  /* ================= LOAD TEST LIST ON MOUNT ================= */
+  useEffect(() => {
+    fetchCompletedTests();
+  }, []);
+
+  /* ================= TEST SELECT ================= */
   const onTestSelect = async (test) => {
     setSelectedTest(test);
     setSelectedDate(null);
     setDateList([]);
 
-    setLoadingDates(true);
-
-    const payload = {
-      chpNo,
-      inspRowId,
-      materialType,
-      testId: test.testId,
-    };
-
-    const data = await fetchTestDates(payload);
-    setDateList(data);
-    setLoadingDates(false);
+    fetchCompletedTestDates(test.testId);
   };
 
   /* ================= FILTER ACTION ================= */
   const onFilterPress = () => {
     console.log("FILTER PARAMETERS 👉", {
       chpNo,
+      equipName,
       inspRowId,
       materialType,
       testId: selectedTest?.testId,
-      testDate: selectedDate?.testDate,
+      testDate: selectedDate,
     });
+
+    // 🔜 Navigate / call parameters API
   };
 
   /* ================= UI ================= */
   return (
     <View style={styles.container}>
-      {/* 🔹 HEADING */}
+      {/* HEADING */}
       <Text style={styles.heading}>Saved CHP – Test Filter</Text>
 
       {/* TEST LIST */}
@@ -122,7 +166,7 @@ export default function SavedChpsScreen({ route }) {
             style={styles.dropdown}
             placeholder="Select Test"
             data={testList}
-            labelField="testName"
+            labelField="testDesc"  
             valueField="testId"
             value={selectedTest?.testId}
             onChange={onTestSelect}
@@ -142,10 +186,10 @@ export default function SavedChpsScreen({ route }) {
               style={styles.dropdown}
               placeholder="Select Date"
               data={dateList}
-              labelField="testDate"
-              valueField="dateId"
-              value={selectedDate?.dateId}
-              onChange={(item) => setSelectedDate(item)}
+              labelField="testDate" 
+              valueField="testDate"
+              value={selectedDate}
+              onChange={(item) => setSelectedDate(item.testDate)}
             />
           )}
         </View>

@@ -138,7 +138,10 @@ export default function Activecall({ navigation }) {
 const handleNavigate = async (item) => {
   await AsyncStorage.setItem("ACTIVE_ITEM", JSON.stringify(item));
 
-  navigation.navigate("EquipmentDetailScreen", {
+  navigation.navigate(
+    "EquipmentDetailScreen"
+    // "LocationFromImage"
+    , {
     item, // optional (for first load only)
   });
 };

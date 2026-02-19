@@ -16,7 +16,11 @@ console.log(data)
   ];
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("EquipmentScreen", { item })}>
+    <TouchableOpacity style={styles.card} 
+    onPress={() => navigation.navigate(
+      "EquipmentScreen"
+    
+      , { item })}>
       <View style={styles.row}>
         {/* <Image
           source={require("../assets/transformer.png")} // add your icon

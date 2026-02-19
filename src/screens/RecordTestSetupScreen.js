@@ -25,8 +25,8 @@ const API_HEADERS = {
 };
 
 const RecordTestSetupScreen = ({ route, navigation }) => {
-  const { chpId, testId, InspRowId, equipName, testDesc, materialType, noOfTaps,item } = route?.params || {};
-  console.log(chpId, testId, InspRowId, testDesc, noOfTaps)
+  const { chpId, testId, InspRowId, equipName, testDesc, materialType, noOfTaps,item,windingNos,Phase,LvKv,HV_Connection,LV_Connection } = route?.params || {};
+  console.log(chpId, testId, InspRowId, testDesc, noOfTaps,windingNos)
 
   /* ================= REFS ================= */
   const cameraRef = useRef(null);
@@ -253,12 +253,33 @@ const RecordTestSetupScreen = ({ route, navigation }) => {
           if (res.status == 200 && data.statusCode == 200) {
             Alert.alert('Success', 'Video uploaded successfully');
             setVideoUri(null);
-            if (testDesc=="INSULATION RESISTANCE(IR) TEST"){
+            if (testDesc=="WINDING INSULATION RESISTANCE(IR) TEST"){
               navigation.navigate("IRTestDetailsScreen", { testId: testId, chpId: chpId, InspRowId: InspRowId, GpsLat: latitude.toString(), GpsLong: longitude.toString(), testName: equipName, testDesc: testDesc, materialType: materialType, noOfTaps: noOfTaps,item })
             }
             if(testDesc==="RATIO TEST"){
                navigation.navigate("TestScreen", { testId: testId, chpId: chpId, InspRowId: InspRowId, GpsLat: latitude.toString(), GpsLong: longitude.toString(), testName: equipName, testDesc: testDesc, materialType: materialType, noOfTaps: noOfTaps,item })
               
+            }
+             if (testDesc=="WINDING TAN DELTA TEST"){
+              navigation.navigate("IRTestDetailsScreen", { testId: testId, chpId: chpId, InspRowId: InspRowId, GpsLat: latitude.toString(), GpsLong: longitude.toString(), testName: equipName, testDesc: testDesc, materialType: materialType, noOfTaps: noOfTaps,item,windingNos })
+            }
+            if (testDesc=="WINDING RESISTANCE TEST"){
+              navigation.navigate("WRTestScreen", { testId: testId, chpId: chpId, InspRowId: InspRowId, GpsLat: latitude.toString(), GpsLong: longitude.toString(), testName: equipName, testDesc: testDesc, materialType: materialType, noOfTaps: noOfTaps,item,windingNos,Phase })
+            }
+             if (testDesc=="CORE INSULATION RESISTANCE TEST"){
+              navigation.navigate("IRCoreTestScreen", { testId: testId, chpId: chpId, InspRowId: InspRowId, GpsLat: latitude.toString(), GpsLong: longitude.toString(), testName: equipName, testDesc: testDesc, materialType: materialType, noOfTaps: noOfTaps,item })
+            }
+            if (testDesc=="BUSHING TAN DELTA TEST"){
+              navigation.navigate("BushingTanDeltaScreen", { testId: testId, chpId: chpId, InspRowId: InspRowId, GpsLat: latitude.toString(), GpsLong: longitude.toString(), testName: equipName, testDesc: testDesc, materialType: materialType, noOfTaps: noOfTaps,item,Phase,LvKv })
+            }
+            if (testDesc=="NO LOAD CURRENT AT 415V"){
+              navigation.navigate("NoLoadTestScreen", { testId: testId, chpId: chpId, InspRowId: InspRowId, GpsLat: latitude.toString(), GpsLong: longitude.toString(), testName: equipName, testDesc: testDesc, materialType: materialType, noOfTaps: noOfTaps,item,Phase,LvKv,windingNos })
+            }
+            if (testDesc=="MAGNETIC BALANCE"){
+              navigation.navigate("MagneticBalenceTestScreen", { testId: testId, chpId: chpId, InspRowId: InspRowId, GpsLat: latitude.toString(), GpsLong: longitude.toString(), testName: equipName, testDesc: testDesc, materialType: materialType, noOfTaps: noOfTaps,item,Phase,LvKv,windingNos,HV_Connection,LV_Connection })
+            }
+            if (testId==16||testId==17){
+              navigation.navigate("ImageUpload", { testId: testId, chpId: chpId, InspRowId: InspRowId, GpsLat: latitude.toString(), GpsLong: longitude.toString(), testName: equipName, testDesc: testDesc, materialType: materialType, noOfTaps: noOfTaps,item,Phase,LvKv,windingNos,HV_Connection,LV_Connection })
             }
            
           } else {

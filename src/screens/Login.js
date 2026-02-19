@@ -14,6 +14,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
 import { navigate as rootNavigate } from '../navigation/AppNavigator';
+import CustomSuccessModal from "../utilities/components/CustomSuccessModal"
+
 
 
 
@@ -26,6 +28,7 @@ const LoginScreen = ({ navigation }) => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailList, setEmailList] = useState([]);
+   const [showSuccess, setShowSuccess] = useState(false);
 
 
   const API_BASE_URL = 'https://webapp.ntpc.co.in/inspectionapi/api/';
@@ -51,9 +54,10 @@ const LoginScreen = ({ navigation }) => {
           password: password
         })
       });
+      console.log(response)
 
       const data = await response.json();
-      console.log('Login response:', data);
+      console.log('Login response:', data,response);
 
       if (data.statusCode === 200 && data.statusDescShort === 'success') {
         setChallengeCode(data.challengeCode);
@@ -69,7 +73,7 @@ const LoginScreen = ({ navigation }) => {
       }
     } catch (error) {
       Alert.alert('Error', 'Network error. Please try again.');
-      console.error('Login error:', error);
+      console.log('Login error:', error);
     } finally {
       setLoading(false);
     }
@@ -149,15 +153,16 @@ const LoginScreen = ({ navigation }) => {
         await AsyncStorage.setItem("authToken", token);
         await AsyncStorage.setItem("userName", userName);
         await AsyncStorage.setItem("user", userId);
-
-        Alert.alert('Success', 'Login completed successfully!');
-        setTimeout(() => {
-          if (navigation && typeof navigation.replace === 'function') {
-            navigation.replace('HomeDrawer');
-          } else {
-            rootNavigate('HomeDrawer');
-          }
-        }, 1000);
+       
+        setShowSuccess(true);
+        // Alert.alert('Success', 'Login completed successfully!');
+        // setTimeout(() => {
+        //   if (navigation && typeof navigation.replace === 'function') {
+        //     navigation.replace('HomeDrawer');
+        //   } else {
+        //     rootNavigate('HomeDrawer');
+        //   }
+        // }, 1000);
       } else {
         Alert.alert('OTP Verification Failed', data.statusDescript || data.error || 'Invalid OTP');
       }
@@ -361,6 +366,19 @@ const LoginScreen = ({ navigation }) => {
         </View>
 
         {renderCurrentStep()}
+         <CustomSuccessModal
+          visible={showSuccess}
+          message="Login Successful!"
+          autoClose={2000}
+          onClose={() => {
+            setShowSuccess(false);
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "HomeDrawer" }],
+            });
+
+          }}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

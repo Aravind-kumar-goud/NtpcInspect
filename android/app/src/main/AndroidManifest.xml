@@ -13,8 +13,7 @@
 
 <!-- optionally, if you want to record audio: -->
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
-<!-- optionally, if you want to record audio: -->
-<uses-permission android:name="android.permission.RECORD_AUDIO" />
+
 
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 

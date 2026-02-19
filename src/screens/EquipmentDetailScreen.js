@@ -8,9 +8,11 @@ import {
   ScrollView,
   Platform,
   KeyboardAvoidingView,
+  Alert
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import LabeledPicker from '../utilities/components/LabeledPicker'
 
 
 /* 🔹 MOVE THIS OUTSIDE */
@@ -23,7 +25,7 @@ const LabeledInput = ({
   keyboardType = "default",
 }) => (
   <View style={styles.fieldWrapper}>
-    <Text style={styles.label}>{label}</Text>
+    <Text style={styles.label}>{label} <Text style={{ color: "red" }}>*</Text></Text>
 
     <View style={styles.inputContainer}>
       <Ionicons name={icon} size={20} color="#1E5AA7" />
@@ -50,16 +52,86 @@ const EquipmentDetailScreen = ({navigation,route}) => {
     mvaRating: "",
     hvKv: "",
     lvKv: "",
+    Phase:"",
     windingNos: "",
     noOfTaps: "",
     vectorGroup: "",
+    HV_Connection:"",
+    LV_Connection:"",
+
   });
 
   const handleChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const validateForm = () => {
+  if (!form.slNo.trim()) {
+    Alert.alert("Validation Error", "Please enter Sl No / Item");
+    return false;
+  }
+
+  if (!form.equipmentName.trim()) {
+    Alert.alert("Validation Error", "Please enter Equipment Name");
+    return false;
+  }
+
+  if (!form.mvaRating.trim()) {
+    Alert.alert("Validation Error", "Please enter MVA Rating");
+    return false;
+  }
+
+  if (!form.hvKv.trim()) {
+    Alert.alert("Validation Error", "Please enter HV (kV)");
+    return false;
+  }
+
+  if (!form.lvKv.trim()) {
+    Alert.alert("Validation Error", "Please enter LV (kV)");
+    return false;
+  }
+
+  if (!form.Phase) {
+    Alert.alert("Validation Error", "Please select Phase");
+    return false;
+  }
+
+  if (!form.HV_Connection) {
+    Alert.alert("Validation Error", "Please select HV Connection");
+    return false;
+  }
+
+  if (!form.LV_Connection) {
+    Alert.alert("Validation Error", "Please select LV Connection");
+    return false;
+  }
+
+  if (!form.windingNos.trim()) {
+    Alert.alert("Validation Error", "Please enter Winding Nos");
+    return false;
+  }
+
+  if (!form.noOfTaps.trim()) {
+    Alert.alert("Validation Error", "Please enter No of Taps");
+    return false;
+  }
+
+  if (!form.vectorGroup.trim()) {
+    Alert.alert("Validation Error", "Please enter Vector Group");
+    return false;
+  }
+
+  return true;
+};
+
+
 const onSubmit = async () => {
+
+  
+  if (!validateForm()) {
+    return;
+  }
+   console.log("✅ Equipment Data:", form);
     await AsyncStorage.setItem(
       "TAP_PROGRESS",
       JSON.stringify({
@@ -70,6 +142,11 @@ const onSubmit = async () => {
     navigation.navigate("TestListScreen", {
         item: item,
         noOfTaps: form.noOfTaps,
+        windingNos:form.windingNos,
+        Phase:form.Phase,
+        LvKv:form.lvKv,
+        HV_Connection:form.HV_Connection,
+        LV_Connection:form.LV_Connection,
       });
 //   try {
 //     console.log("✅ Equipment Data:", form);
@@ -97,7 +174,10 @@ const onSubmit = async () => {
 //       VectorGroup_5: form.vectorGroup,              
 //       ChpNo_14: Number(item?.chpNo),                 
 //       InspRowId_15: item?.inspRowId,                 
-//       TestId_16: Number(item?.testId),              
+//       TestId_16: Number(item?.testId),  
+        //Phase_4:form.Phase
+
+
 //     };
 
    
@@ -192,6 +272,47 @@ const onSubmit = async () => {
             onChangeText={(v) => handleChange("lvKv", v)}
           />
 
+          {/* <LabeledInput
+            label="Phase"
+            icon="repeat"
+            placeholder="Enter number of Phase"
+            keyboardType="numeric"
+            value={form.Phase}
+            onChangeText={(v) => handleChange("Phase", v)}
+          /> */}
+         <LabeledPicker
+  label="Phase"
+  icon="repeat"
+  value={form.Phase}
+  onValueChange={(v) => handleChange("Phase", v)}
+  placeholder="Select Phase"
+  items={[
+    { label: "1 Phase", value: 1 },
+    { label: "3 Phase", value: 3 },
+  ]}
+/>
+<LabeledPicker
+  label="HV-Connection"
+  icon="git-branch"
+  value={form.HV_Connection}
+  onValueChange={(v) => handleChange("HV_Connection", v)}
+  placeholder="Select HV-Connection"
+  items={[
+    { label: "Star (Y)", value: "STAR" },
+    { label: "Delta (Δ)", value: "DELTA" },
+  ]}
+/>
+<LabeledPicker
+  label="LV-Connection"
+  icon="git-branch"
+  value={form.LV_Connection}
+  onValueChange={(v) => handleChange("LV_Connection", v)}
+  placeholder="Select LV-Connection"
+  items={[
+    { label: "Star (Y)", value: "STAR" },
+    { label: "Delta (Δ)", value: "DELTA" },
+  ]}
+/>
           <LabeledInput
             label="Winding (Nos)"
             icon="repeat"

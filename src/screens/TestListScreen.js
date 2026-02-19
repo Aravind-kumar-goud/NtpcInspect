@@ -27,6 +27,11 @@ export default function TestListScreen({  navigation }) {
   // console.log(noOfTaps)
   // const item = route?.params?.item;
 const noOfTaps = route?.params?.noOfTaps;
+const windingNos=route?.params?.windingNos;
+const Phase=route?.params?.Phase;
+const LvKv=route?.params?.LvKv;
+const HV_Connection=route?.params?.HV_Connection;
+const LV_Connection=route?.params?.LV_Connection;
   // const materialType = item?.materialType;
   // const chpId = item?.chpNo
   // const InspRowId = item?.inspRowId
@@ -175,6 +180,7 @@ const renderItem = ({ item }) => {
           InspRowId:ITEM?.inspRowId,
           testDesc: item?.testDesc,
           noOfTaps,
+          windingNos,Phase,LvKv,HV_Connection,LV_Connection
         })
       }
     >

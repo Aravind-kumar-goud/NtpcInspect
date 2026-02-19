@@ -15,7 +15,13 @@ import Activecall from '../screens/Activecall';
 import IRTestDetailsScreen from '../screens/IRTestDetailsScreen';
 import IRTestsScreen from '../screens/IRTestsScreen';
 import ChpSavedData from '../screens/ChpSavedData';
-import SavedChpsScreen from '../screens/SavedChpsScreen'
+import SavedChpsScreen from '../screens/SavedChpsScreen';
+import WRTestScreen from '../screens/WRTestScreen';
+import IRCoreTestScreen from '../screens/IRCoreTestScreen';
+import BushingTanDeltaScreen from '../screens/BushingTanDeltaScreen';
+import NoLoadTestScreen from '../screens/NoLoadTestScreen';
+import MagneticBalenceTestScreen from '../screens/MagneticBalenceTestScreen';
+import ImageUpload from '../screens/ImageUpload'
 
 import LoginScreen from '../screens/Login';
 import DrawerNavigation from './drawer';
@@ -268,7 +274,10 @@ export default function AppNavigation() {
 <Stack.Screen
   name="IRTestDetailsScreen"
   component={IRTestDetailsScreen}
-  options={{ title: "IR Test" }}
+  // options={{ title: "IR Test" }}
+        options={{
+    headerShown: false,
+  }}
 />
 <Stack.Screen
   name="ChpSavedData"
@@ -284,6 +293,52 @@ export default function AppNavigation() {
     headerShown: false,
   }}
 />
+<Stack.Screen
+  name="WRTestScreen"
+  component={WRTestScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+<Stack.Screen
+  name="IRCoreTestScreen"
+  component={IRCoreTestScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+<Stack.Screen
+  name="BushingTanDeltaScreen"
+  component={BushingTanDeltaScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+<Stack.Screen
+  name="NoLoadTestScreen"
+  component={NoLoadTestScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+<Stack.Screen
+  name="MagneticBalenceTestScreen"
+  component={MagneticBalenceTestScreen}
+  options={{
+    headerShown: false,
+  }}
+/>
+<Stack.Screen
+  name="ImageUpload"
+  component={ImageUpload}
+  options={{
+    headerShown: false,
+  }}
+/>
+
+
+
+
 
       </Stack.Navigator>
     </NavigationContainer>

@@ -23,23 +23,25 @@ const API_HEADERS = {
   Accept: "*/*",
   XApiKey:
     "pgH7QzFHJx4w46fI~$@#!$@#$dfasfd5Uzi4RvtTwlAzGyageSNz3oDeepa=xcode",
+    
 };
 
 // const IR_TESTS = ["HVLV", "HVYE", "LVYE"];
 
 export default function IRTestDetailsScreen({ route, navigation }) {
 
-     const { testId, chpId, InspRowId, GpsLat, GpsLong, testDesc, materialType, item ,testName,windingNos} = route.params || {};
+     const { testId, chpId, InspRowId, GpsLat, GpsLong, testDesc, materialType, item ,testName,windingNos,Phase,LvKv} = route.params || {};
   console.log(InspRowId,testDesc)
    const cameraRef = useRef(null);
   const device = useCameraDevice("back");
-
+  const hasFlash = device?.hasFlash;
   const [openCam, setOpenCam] = useState(false);
   const [activeType, setActiveType] = useState(null); // file1 | file2
   const [flash, setFlash] = useState("off");
 
   const [file1, setFile1] = useState(null);
   const [file2, setFile2] = useState(null);
+  const [file3, setFile3] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loading1,setLoading1]=useState(false)
 
@@ -49,8 +51,8 @@ export default function IRTestDetailsScreen({ route, navigation }) {
 
       
 // oiltemp and applied voltage 
-const [appliedVoltage, setAppliedVoltage] = useState("");
-const [oilTemperature, setOilTemperature] = useState("");
+const [SerialNo, setSerialNo] = useState("");
+// const [oilTemperature, setOilTemperature] = useState("");
 const [testCombinations, setTestCombinations] = useState([]);
 const [tapProgress, setTapProgress] = useState({
         currentTap: 1,
@@ -61,18 +63,13 @@ console.log(tapProgress,"tap")
 useEffect(() => {
   if (!testDesc) return;
 
-  if (testDesc === "WINDING INSULATION RESISTANCE(IR) TEST") {
-    // STATIC for IR
-    setTestCombinations(["HVLV", "HVYE", "LVYE"]);
-  }
-
-  if (testDesc === "WINDING TAN DELTA TEST") {
-    loadTanDeltaCombinations();
-   
-    
-  }
+  loadTanDeltaCombinations()
   
 }, [testDesc]);
+
+const toggleFlash = () => {
+  setFlash(prev => (prev === "off" ? "on" : "off"));
+};
 
  
 
@@ -81,11 +78,13 @@ useEffect(() => {
     const token = await AsyncStorage.getItem("authToken");
 
     // param1 = number of windings (you already have this from equipment details)
-    const param1 = windingNos || 3;
+    const param1 = Phase;
+    const param2=LvKv;
+    console.log(Phase, LvKv,"paramsss")
   
 
     const res = await fetch(
-      `${API_BASE_URL}Inspection/GetTestCombinations?testid=${testId}&param1=${param1}&param2=0`,
+      `${API_BASE_URL}Inspection/GetTestCombinations?testid=${testId}&param1=${param1}&param2=${param2}`,
       {
         method: "POST",
         headers: {
@@ -96,10 +95,11 @@ useEffect(() => {
     );
 
     const json = await res.json();
+    console.log(json)
 
     if (json.statusCode === 200 && Array.isArray(json.data)) {
       setTestCombinations(json.data);
-      console.log(json.data)
+      console.log(json.data,"111111111111111111111",json.data.length)
       setTapProgress(prev => ({
     ...prev,
              // reset when new test selected
@@ -112,7 +112,8 @@ useEffect(() => {
     console.log(e)
     Alert.alert("Network Error", "Unable to fetch combinations");
   }
- 
+  console.log(testCombinations.length)
+   
 };
 
  
@@ -134,7 +135,7 @@ useEffect(() => {
 
     try {
       const result = await cameraRef.current.takePhoto({
-        flash,
+       flash: flash,
         qualityPrioritization: "quality",
       });
 
@@ -148,9 +149,9 @@ useEffect(() => {
 
       };
 
-      activeType === "file1"
-        ? setFile1(imageObj)
-        : setFile2(imageObj);
+      if (activeType === "file1") setFile1(imageObj);
+else if (activeType === "file2") setFile2(imageObj);
+else if (activeType === "file3") setFile3(imageObj);
 
       setOpenCam(false);
     } catch (e) {
@@ -175,9 +176,9 @@ useEffect(() => {
           name: `${activeType}_${Date.now()}.jpg`,
         };
 
-        activeType === "file1"
-          ? setFile1(imageObj)
-          : setFile2(imageObj);
+      if (activeType === "file1") setFile1(imageObj);
+else if (activeType === "file2") setFile2(imageObj);
+else if (activeType === "file3") setFile3(imageObj);
 
         setOpenCam(false);
       }
@@ -309,6 +310,10 @@ if (tapProgress.currentTap > testCombinations.length) {
         "TestReadingsImagesFile",
         file2
       );
+        formData.append(
+        "TestReadingsImagesFile",
+        file3
+      );
 
 
       // ===== API CALL =====
@@ -367,6 +372,7 @@ if (tapProgress.currentTap > testCombinations.length) {
                           await updateTapProgress(nextTap);
                           setFile1(null);
                           setFile2(null);
+                          setFile3(null)
                           setDynamicData([]);
                         },
                       },
@@ -399,7 +405,7 @@ if (tapProgress.currentTap > testCombinations.length) {
 };
   /* ================= SUBMIT ================= */
   const submitImages = async () => {
-    console.log(appliedVoltage,oilTemperature,"temmmm And Voltage")
+    console.log(SerialNo,"temmmm And Voltage")
     if (!file1 ) {
       Alert.alert("Required", "Please capture both images");
       return;
@@ -413,13 +419,15 @@ if (tapProgress.currentTap > testCombinations.length) {
       formData.append("testName", testDesc);
       formData.append("StringList",testCombinations[tapProgress.currentTap-1])
         //add applied voltage
-      formData.append("StringList",appliedVoltage)
+      formData.append("StringList",SerialNo)
 // add oil temperature
-      formData.append("StringList",oilTemperature)
+    //   formData.append("StringList",oilTemperature)
 
       formData.append("testId", testId);
       formData.append("file", file1);
       formData.append("file2", file2);
+      formData.append("file3", file3); 
+
 
       const res = await fetch(
         `${API_BASE_URL}Inspection/GetParametersFromImageForTest`,
@@ -471,9 +479,7 @@ if (tapProgress.currentTap > testCombinations.length) {
     <ScrollView contentContainerStyle={styles.container}>
         {/* TAP STATUS CARD */}
 <View style={styles.statusContainer}>
-  <Text style={styles.statusHeader}> {testDesc === "WINDING INSULATION RESISTANCE(IR) TEST"
-    ? "IR Test "
-    : "Tan Delta Test "} Progress</Text>
+  <Text style={styles.statusHeader}>Bushing Tan Delta Test Progress</Text>
 
   <View style={styles.statusRow}>
     {testCombinations.map((tap, index) => {
@@ -530,41 +536,27 @@ if (tapProgress.currentTap > testCombinations.length) {
 
      <View style={styles.card}>
   <Text style={styles.title}>
-   {testDesc === "WINDING INSULATION RESISTANCE(IR) TEST"
-    ? "IR Test "
-    : "Tan Delta Test"} Combination : {testCombinations[tapProgress.currentTap - 1]}
+Bushing Tan Delta Test Combination : {testCombinations[tapProgress.currentTap - 1]}
   </Text>
 
   {/* Applied Voltage */}
   <View style={styles.inputContainer}>
-    <Text style={styles.inputLabel}>Applied Voltage (V)</Text>
+    <Text style={styles.inputLabel}>Bushing Serial Number</Text>
     <TextInput
       style={styles.input}
       placeholder="Enter applied voltage"
       keyboardType="numeric"
-      value={appliedVoltage}
-      onChangeText={setAppliedVoltage}
+      value={SerialNo}
+      onChangeText={setSerialNo}
     />
   </View>
 
-  {/* Oil Temperature */}
-  <View style={styles.inputContainer}>
-    <Text style={styles.inputLabel}>Oil Temperature (°C)</Text>
-    <TextInput
-      style={styles.input}
-      placeholder="Enter oil temperature"
-      keyboardType="numeric"
-      value={oilTemperature}
-      onChangeText={setOilTemperature}
-    />
-  </View>
+  
 </View>
 
 
        <View style={styles.card}>
-        <Text style={styles.subtitle}> {testDesc === "WINDING INSULATION RESISTANCE(IR) TEST"
-    ? "IR Test Kit Image"
-    : "Tan Delta Test Kit Image"}</Text>
+        <Text style={styles.subtitle}> Bushing Tan Delta TEST</Text>
 
         {file1 && <Image source={{ uri: file1.uri }} style={styles.preview} />}
 
@@ -596,7 +588,22 @@ if (tapProgress.currentTap > testCombinations.length) {
         </TouchableOpacity>
       </View>
 
-      {/* IMAGE 2 */}
+      {/* IMAGE 3 */}
+      <View style={styles.card}>
+        <Text style={styles.subtitle}>Bushing Nameplate Image</Text>
+
+        {file3 && <Image source={{ uri: file3.uri }} style={styles.preview} />}
+
+        <TouchableOpacity
+          style={styles.captureBtn}
+          onPress={() => openCamera("file3")}
+        >
+          <Ionicons name="camera" size={18} color="#1E5AA7" />
+          <Text style={styles.captureText}>
+            {file3 ? "RE-CAPTURE IMAGE" : "CAPTURE / SELECT IMAGE"}
+          </Text>
+        </TouchableOpacity>
+      </View>
      
 
       <TouchableOpacity
@@ -677,20 +684,21 @@ if (tapProgress.currentTap > testCombinations.length) {
               device={device}
               isActive
               photo
-              flash={flash}
+            //   flash={flash}
               style={{ flex: 1 }}
             />
           )}
-          <TouchableOpacity
-                                style={styles.flashBtn}
-                                onPress={() => setFlash(flash === "on" ? "off" : "on")}
-                              >
-                                <Ionicons
-                                  name={flash === "on" ? "flash" : "flash-off"}
-                                  size={26}
-                                  color="#fff"
-                                />
-                              </TouchableOpacity>
+
+              <TouchableOpacity
+                      style={styles.flashBtn}
+                      onPress={() => setFlash(flash === "on" ? "off" : "on")}
+                    >
+                      <Ionicons
+                        name={flash === "on" ? "flash" : "flash-off"}
+                        size={26}
+                        color="#fff"
+                      />
+                    </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.closeBtn}
@@ -760,7 +768,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   submitText: { color: "#fff", fontWeight: "700" },
-   flashBtn: { position: "absolute", top: 40, left: 20 },
+  flashBtn: { position: "absolute", top: 40, left: 20 },
   closeBtn: { position: "absolute", top: 40, right: 20 },
   galleryBtn: { position: "absolute", bottom: 45, left: 25 },
   shutterBtn: {

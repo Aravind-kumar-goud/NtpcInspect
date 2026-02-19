@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Dashboard from '../screens/Dashboard';
 import Activecall from '../screens/Activecall';
 
+
 const Drawer = createDrawerNavigator();
 const WINDOW_WIDTH = Dimensions.get('window').width;
 
@@ -68,6 +69,7 @@ export default function DrawerNavigation() {
         drawerStyle: { width: Math.round(WINDOW_WIDTH * 0.6) },
       }}
     >
+
       <Drawer.Screen name="Dashboard" component={Dashboard} />
       <Drawer.Screen name="Active Calls" component={Activecall} options={{
     headerShown: false,
