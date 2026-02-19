@@ -16,7 +16,8 @@ import { Camera, useCameraDevice } from "react-native-vision-camera";
 import { pick, types, errorCodes } from "@react-native-documents/picker";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import LabeledPicker from '../utilities/components/LabeledPicker'
+import LabeledPicker from '../utilities/components/LabeledPicker';
+import {compressImageIfNeeded} from '../utilities/components/imageCompressor'
 
 /* ================= API CONFIG ================= */
 const API_BASE_URL = "https://webapp.ntpc.co.in/inspectionapi/api/";
@@ -214,9 +215,22 @@ export default function MagneticBalenceTestScree({ route, navigation }) {
       // imageConfig.forEach(i => {
       //   formData.append("TestReadingsImagesFile", files[i.key]);
       // });
-      allConfigs.forEach(i => {
-        formData.append(i.key, files[i.key]);
+      // allConfigs.forEach(i => {
+      //   formData.append(i.key, files[i.key]);
+      // });
+       for (const config of allConfigs) {
+
+      const originalImage = files[config.key];
+
+      const compressedImage =
+        await compressImageIfNeeded(originalImage);
+
+      formData.append(config.key, {
+        uri: compressedImage.uri,
+        type: compressedImage.type || "image/jpeg",
+        name: compressedImage.name || `${config.key}.jpg`,
       });
+    }
       console.log(formData, "form data ")
       const res = await fetch(
         `${API_BASE_URL}Inspection/GetParametersFromImageForTest`,
@@ -322,12 +336,25 @@ export default function MagneticBalenceTestScree({ route, navigation }) {
 
 
 
-      // imageConfig.forEach(i => {
+      
+      //  allConfigs.forEach(i => {
       //   formData.append(`TestReadingsImagesFile`, files[i.key]);
       // });
-       allConfigs.forEach(i => {
-        formData.append(`TestReadingsImagesFile`, files[i.key]);
-      });
+
+      for (const config of allConfigs) {
+
+  const originalImage = files[config.key];
+
+  const compressedImage =
+    await compressImageIfNeeded(originalImage);
+
+  formData.append("TestReadingsImagesFile", {
+    uri: compressedImage.uri,
+    type: compressedImage.type || "image/jpeg",
+    name: compressedImage.name || `${config.key}.jpg`,
+  });
+
+}
 
 
       // ===== API CALL =====

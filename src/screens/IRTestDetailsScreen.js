@@ -16,6 +16,7 @@ import { Camera, useCameraDevice } from "react-native-vision-camera";
 import { pick, types, errorCodes } from "@react-native-documents/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import {compressImageIfNeeded} from '../utilities/components/imageCompressor'
 
 /* ================= API CONFIG ================= */
 const API_BASE_URL = "https://webapp.ntpc.co.in/inspectionapi/api/";
@@ -324,6 +325,7 @@ if (tapProgress.currentTap > testCombinations.length) {
           body: formData,
         }
       );
+      console.log(response,"res----")
 
       const json = await response.json();
       console.log(json,response)
@@ -331,7 +333,7 @@ if (tapProgress.currentTap > testCombinations.length) {
        const nextTap = tapProgress.currentTap;
         const remaining = tapProgress.noOfTaps - nextTap;
 
-      if (json?.statusCode === 200) {
+      if (json?.statusCode === 200 && response?.status === 200) {
         // ✅ ALL TAPS DONE
                 if (nextTap === tapProgress.noOfTaps) {
                   Alert.alert(
@@ -383,7 +385,7 @@ if (tapProgress.currentTap > testCombinations.length) {
         Alert.alert("Save Failed", json?.statusDescShort);
       }
     } catch (err) {
-      // console.log(err)
+      console.log(err)
       Alert.alert("Network Error");
     } finally {
       setLoading1(false);
@@ -418,8 +420,35 @@ if (tapProgress.currentTap > testCombinations.length) {
       formData.append("StringList",oilTemperature)
 
       formData.append("testId", testId);
-      formData.append("file", file1);
-      formData.append("file2", file2);
+      // formData.append("file", file1);
+      // formData.append("file2", file2);
+        // ✅ compress file1
+    if (file1) {
+
+      const compressed1 =
+        await compressImageIfNeeded(file1);
+
+      formData.append("file", {
+        uri: compressed1.uri,
+        type: compressed1.type || "image/jpeg",
+        name: compressed1.name || "file1.jpg",
+      });
+
+    }
+
+    // ✅ compress file2
+    if (file2) {
+
+      const compressed2 =
+        await compressImageIfNeeded(file2);
+
+      formData.append("file2", {
+        uri: compressed2.uri,
+        type: compressed2.type || "image/jpeg",
+        name: compressed2.name || "file2.jpg",
+      });
+
+    }
 
       const res = await fetch(
         `${API_BASE_URL}Inspection/GetParametersFromImageForTest`,

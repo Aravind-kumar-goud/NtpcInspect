@@ -126,25 +126,7 @@ export default function TestScreen() {
     }
   };
 
-  /* ================= API ================= */
-  // const mapApiResponseToUI = (response) => {
-  //   if (!response?.data?.length) return [];
-  //   setData(response.data[0].listParameters)
-
-  //   return response.data[0].listParameters.map((item) => ({
-  //     title: item.paramName.replaceAll("_", " "),
-  //     description: item.paramDesc,
-  //     value: item.paramValue,
-  //     color:
-  //       item.paramName === "TAPNO"
-  //         ? "#d32f2f"
-  //         : item.paramName.includes("_U")
-  //           ? "#f9a825"
-  //           : item.paramName.includes("_V")
-  //             ? "#2e7d32"
-  //             : "#1565c0",
-  //   }));
-  // };
+ 
 
   const mapApiResponseToUI = (response) => {
     if (!response?.data?.length) return [];
@@ -508,10 +490,12 @@ export default function TestScreen() {
           body: formData,
         }
       );
-
+      console.log(response,"Api-------request")
       const json = await response.json();
+      console.log(json,"Api------response")
+      
 
-      if (json?.statusCode === 200) {
+      if (json?.statusCode === 200 &&response.status == 200 ) {
         if(testDesc==="RATIO TEST"){
 
         const nextTap = tapProgress.currentTap;
@@ -558,22 +542,13 @@ export default function TestScreen() {
           );
         }
       }
-      if(testDesc==="INSULATION RESISTANCE(IR) TEST"){
-         navigation.navigate("TestListScreen", { item: item, noOfTaps: tapProgress.noOfTaps })
-
-      }
-      if(testDesc==="TAN DELTA TEST"){
-        console.log(testDesc)
-      }
-      if(testDesc==="WINDING RESISTANCE TEST"){
-        console.log(testDesc)
-      }
+     
 
       } else {
         Alert.alert("Save Failed", json?.statusDescShort);
       }
     } catch (err) {
-      // console.log(err)
+      console.log(err)
       Alert.alert("Network Error");
     } finally {
       setLoading1(false);
